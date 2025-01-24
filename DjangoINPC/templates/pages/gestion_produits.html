@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Gestion des Produits</h1>
+
+<!-- Bouton pour exporter les données des Produits -->
+<a href="{% url 'export_data' %}?table=Product" class="btn btn-success mb-3">
+    <i class="fas fa-file-export"></i> Exporter les Produits
+</a>
+
+<a href="{% url 'import_data' %}" class="btn btn-success mb-3">
+    <i class="fas fa-file-import"></i> Importer des données
+</a>
+
+<!-- Bouton pour ouvrir le modal d'ajout d'un produit -->
+<div class="mb-3">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="fas fa-plus"></i> Ajouter un Produit
+    </button>
+</div>
+
+<!-- Tableau pour afficher la liste des produits -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Description</th>
+            <th>Unité</th>
+            <th>Type</th>
+            <th>Famille</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for produit in produits %}
+        <tr>
+            <td>{{ produit.id }}</td>
+            <td>{{ produit.code }}</td>
+            <td>{{ produit.name }}</td>
+            <td>{{ produit.description }}</td>
+            <td>{{ produit.unit_measure }}</td>
+            <td>{{ produit.product_type.label }}</td> <!-- Affiche le label du type de produit -->
+            <td>{{ produit.famille.nom }}</td> <!-- Affiche le nom de la famille -->
+            <td>
+                <!-- Bouton pour voir les détails du produit -->
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ produit.id }}">
+                    <i class="fas fa-eye"></i> Voir
+                </button>
+
+                <!-- Bouton pour modifier le produit -->
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ produit.id }}">
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+
+                <!-- Formulaire pour supprimer le produit -->
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="produit_id" value="{{ produit.id }}">
+                    <button type="submit" name="supprimer" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </td>
+        </tr>
+
+        <!-- Modal pour afficher les détails du produit -->
+        <div class="modal fade" id="viewModal{{ produit.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Détails du Produit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>ID :</strong> {{ produit.id }}</p>
+                        <p><strong>Code :</strong> {{ produit.code }}</p>
+                        <p><strong>Nom :</strong> {{ produit.name }}</p>
+                        <p><strong>Description :</strong> {{ produit.description }}</p>
+                        <p><strong>Unité :</strong> {{ produit.unit_measure }}</p>
+                        <p><strong>Type :</strong> {{ produit.product_type.label }}</p>
+                        <p><strong>Famille :</strong> {{ produit.famille.nom }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour modifier un produit -->
+        <div class="modal fade" id="editModal{{ produit.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modifier le Produit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <input type="hidden" name="produit_id" value="{{ produit.id }}">
+                            <div class="mb-3">
+                                <label for="code" class="form-label">Code</label>
+                                <input type="text" name="code" class="form-control" value="{{ produit.code }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nom</label>
+                                <input type="text" name="name" class="form-control" value="{{ produit.name }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea name="description" class="form-control">{{ produit.description }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="unit_measure" class="form-label">Unité</label>
+                                <input type="text" name="unit_measure" class="form-control" value="{{ produit.unit_measure }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="product_type" class="form-label">Type</label>
+                                <select name="product_type" class="form-control">
+                                    {% for type in product_types %}
+                                    <option value="{{ type.id }}" {% if produit.product_type.id == type.id %}selected{% endif %}>{{ type.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="famille" class="form-label">Famille</label>
+                                <select name="famille" class="form-control">
+                                    {% for famille in familles %}
+                                    <option value="{{ famille.id }}" {% if produit.famille.id == famille.id %}selected{% endif %}>{{ famille.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" name="modifier" class="btn btn-warning">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal pour ajouter un nouveau produit -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un Produit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Code</label>
+                        <input type="text" name="code" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nom</label>
+                        <input type="text" name="name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea name="description" class="form-control"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="unit_measure" class="form-label">Unité</label>
+                        <input type="text" name="unit_measure" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="product_type" class="form-label">Type</label>
+                        <select name="product_type" class="form-control">
+                            {% for type in product_types %}
+                            <option value="{{ type.id }}">{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="famille" class="form-label">Famille</label>
+                        <select name="famille" class="form-control">
+                            {% for famille in familles %}
+                            <option value="{{ famille.id }}">{{ famille.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" name="creer" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

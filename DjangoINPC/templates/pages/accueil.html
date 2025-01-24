@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Indice National des Prix à la Consommation{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Section principale -->
+    <div class="card shadow-lg">
+        <div class="card-body text-center bg-light">
+            <!-- Titre principal avec style amélioré -->
+            <h1 class="display-4 text-primary font-weight-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+                Bienvenue sur l'application INPC
+            </h1>
+            <!-- Sous-titre en noir -->
+            <p class="lead" style="color: black; font-weight: 500;">
+                Suivez et analysez les tendances des prix nationaux avec notre application.
+            </p>
+            <hr class="my-4">
+
+    <!-- Section INPC -->
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h3 class="text-secondary mb-4">Évolution sur 4 mois</h3>
+            
+            <ul class="list-group">
+                {% if inpc_data %}
+                    {% for data in inpc_data %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-chart-line me-2"></i>
+                            {{ data.annee }} - {{ data.mois|date:"F" }}
+                        </div>
+                        <span class="badge bg-success rounded-pill fs-6">
+                            {{ data.inpc|floatformat:2 }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="list-group-item text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Aucune donnée disponible
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Bouton d'action -->
+    <div class="text-center mt-5">
+        <a href="{% url 'calculate_inpc' %}" class="btn btn-success btn-lg py-3 px-5">
+            <i class="fas fa-calculator me-2"></i>
+            Calculer l'INPC
+        </a>
+    </div>
+
+         <!-- Bouton pour accéder à la liste des produits -->
+    <div class="mt-4">
+        <a href="{% url 'gestion_produits' %}" class="btn btn-primary btn-lg mt-3" role="button">
+            <i class="fas fa-chart-line"></i> Liste des produits
+         </a>
+    </div>
+</div>
+    </div>
+
+    <!-- Footer avec couleurs -->
+    <footer class="mt-5 text-center">
+        <p style="background-color: #f8f9fa; padding: 15px; border-top: 2px solid #007bff;">
+            <span style="color:rgb(225, 0, 255);">© 2025 Application INPC.</span> 
+            <span style="color:rgb(21, 24, 22);">Tous droits réservés.</span>
+        </p>
+    </footer>
+</div>
+{% endblock %}

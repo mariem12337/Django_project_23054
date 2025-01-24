@@ -1,0 +1,45 @@
+
+
+networks:
+  django_network:
+    driver: bridge
+
+services:
+  web:
+    build: .
+    container_name: django_web
+    ports:
+      - "23054:23054"  # Host port 23054 mapped to container port 23054
+    volumes:
+      - .:/app
+    environment:
+      DJANGO_DB_HOST: db
+      DJANGO_DB_PORT: 5432
+      DJANGO_DB_USER: django_user
+      DJANGO_DB_PASSWORD: secure_password
+      DJANGO_DB_NAME: django_db
+      DJANGO_SECRET_KEY: django-insecure-6*$@s4%pj36mr&$w8gfj8om2^jkw8)cq1cx$m%ofz2$b0#px$%
+      DJANGO_DEBUG: 'True'
+      DJANGO_ALLOWED_HOSTS: 'localhost,127.0.0.1'
+    depends_on:
+      - db
+    networks:
+      - django_network
+    command: python manage.py runserver 0.0.0.0:23054
+
+  db:
+    image: postgres:15
+    container_name: django_db
+    ports:
+      - "5432:5432"  # Host port 5432 mapped to container port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: django_user
+      POSTGRES_PASSWORD: secure_password
+      POSTGRES_DB: django_db
+    networks:
+      - django_network
+
+volumes:
+  postgres_data:

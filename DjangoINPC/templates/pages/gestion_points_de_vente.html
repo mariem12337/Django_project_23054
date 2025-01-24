@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Gestion des Points de Vente</h1>
+
+<!-- Bouton pour exporter les données des Points de Vente -->
+<a href="{% url 'export_data' %}?table=PointOfSale" class="btn btn-success mb-3">
+    <i class="fas fa-file-export"></i> Exporter les Points de Vente
+</a>
+
+<a href="{% url 'import_data' %}" class="btn btn-success mb-3">
+    <i class="fas fa-file-import"></i> Importer des données
+</a>
+
+<!-- Bouton pour ouvrir le modal d'ajout d'un point de vente -->
+<div class="mb-3">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="fas fa-plus"></i> Ajouter un Point de Vente
+    </button>
+</div>
+
+<!-- Tableau pour afficher la liste des points de vente -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Type</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Commune</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for point in points_de_vente %}
+        <tr>
+            <td>{{ point.id }}</td>
+            <td>{{ point.code }}</td>
+            <td>{{ point.type }}</td>
+            <td>{{ point.gps_lat }}</td>
+            <td>{{ point.gps_lon }}</td>
+            <td>{{ point.commune.name }}</td> <!-- Affiche le nom de la commune -->
+            <td>
+                <!-- Bouton pour voir les détails du point de vente -->
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ point.id }}">
+                    <i class="fas fa-eye"></i> Voir
+                </button>
+
+                <!-- Bouton pour modifier le point de vente -->
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ point.id }}">
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+
+                <!-- Formulaire pour supprimer le point de vente -->
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="point_id" value="{{ point.id }}">
+                    <button type="submit" name="supprimer" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal pour afficher les détails d'un point de vente -->
+{% for point in points_de_vente %}
+<div class="modal fade" id="viewModal{{ point.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Détails du Point de Vente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>ID :</strong> {{ point.id }}</p>
+                <p><strong>Code :</strong> {{ point.code }}</p>
+                <p><strong>Type :</strong> {{ point.type }}</p>
+                <p><strong>Latitude :</strong> {{ point.gps_lat }}</p>
+                <p><strong>Longitude :</strong> {{ point.gps_lon }}</p>
+                <p><strong>Commune :</strong> {{ point.commune.name }}</p> <!-- Affiche le nom de la commune -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modal pour modifier un point de vente -->
+{% for point in points_de_vente %}
+<div class="modal fade" id="editModal{{ point.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier le Point de Vente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="point_id" value="{{ point.id }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Code</label>
+                        <input type="text" name="code" class="form-control" value="{{ point.code }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Type</label>
+                        <input type="text" name="type" class="form-control" value="{{ point.type }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="gps_lat" class="form-label">Latitude</label>
+                        <input type="number" step="any" name="gps_lat" class="form-control" value="{{ point.gps_lat }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="gps_lon" class="form-label">Longitude</label>
+                        <input type="number" step="any" name="gps_lon" class="form-control" value="{{ point.gps_lon }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="commune" class="form-label">Commune</label>
+                        <select name="commune" class="form-control" required>
+                            {% for commune in communes %}
+                            <option value="{{ commune.id }}" {% if commune.id == point.commune.id %}selected{% endif %}>{{ commune.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" name="modifier" class="btn btn-warning">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modal pour ajouter un nouveau point de vente -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un Point de Vente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Code</label>
+                        <input type="text" name="code" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Type</label>
+                        <input type="text" name="type" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="gps_lat" class="form-label">Latitude</label>
+                        <input type="number" step="any" name="gps_lat" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="gps_lon" class="form-label">Longitude</label>
+                        <input type="number" step="any" name="gps_lon" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="commune" class="form-label">Commune</label>
+                        <select name="commune" class="form-control" required>
+                            {% for commune in communes %}
+                            <option value="{{ commune.id }}">{{ commune.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" name="creer" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

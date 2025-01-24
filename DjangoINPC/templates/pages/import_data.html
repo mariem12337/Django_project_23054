@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Importer des données</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="model">Sélectionnez un modèle :</label>
+    <select name="model" id="model">
+        <option value="Wilaya">Wilayas</option>
+        <option value="Moughataa">Moughataas</option>
+        <option value="Commune">Communes</option>
+        <option value="Product">Produits</option>
+        <option value="PointOfSale">Points de vente</option>
+        <option value="ProductPrice">Prix des produits</option>
+        <option value="Cart">Paniers</option>
+        <option value="CartProducts">Produits dans les paniers</option>
+        <option value="Famille">Familles de produits</option>
+        <option value="Prix">Prix</option>
+    </select>
+    <br><br>
+    <input type="file" name="file" required>
+    <br><br>
+    <button type="submit">Importer</button>
+</form>
+
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

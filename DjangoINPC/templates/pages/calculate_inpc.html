@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Calcul de l'INPC{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h1 class="display-4 text-primary">Calcul de l'INPC</h1>
+            <p class="lead">Saisissez le mois et l'année pour calculer l'INPC.</p>
+            <hr class="my-4">
+
+            <!-- Formulaire de calcul de l'INPC -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="mois">Mois :</label>
+                    <input type="number" id="mois" name="mois" class="form-control" min="1" max="12" required>
+                </div>
+                <div class="form-group">
+                    <label for="annee">Année :</label>
+                    <input type="number" id="annee" name="annee" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-calculator"></i> Calculer
+                </button>
+            </form>
+
+            <!-- Affichage des erreurs -->
+            {% if error_message %}
+                <div class="alert alert-danger mt-4">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

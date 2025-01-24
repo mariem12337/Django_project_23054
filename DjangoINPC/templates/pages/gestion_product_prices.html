@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Gestion des Prix des Produits</h1>
+
+<!-- Bouton pour exporter les données des Prix des Produits -->
+<a href="{% url 'export_data' %}?table=ProductPrice" class="btn btn-success mb-3">
+    <i class="fas fa-file-export"></i> Exporter les Prix des Produits
+</a>
+
+<a href="{% url 'import_data' %}" class="btn btn-success mb-3">
+    <i class="fas fa-file-import"></i> Importer des données
+</a>
+
+<!-- Bouton pour ouvrir le modal d'ajout d'un prix -->
+<div class="mb-3">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="fas fa-plus"></i> Ajouter un Prix
+    </button>
+</div>
+
+<!-- Tableau pour afficher la liste des prix des produits -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Valeur</th>
+            <th>Date de Début</th>
+            <th>Date de Fin</th>
+            <th>Produit</th>
+            <th>Point de Vente</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for prix in prix_produits %}
+        <tr>
+            <td>{{ prix.id }}</td>
+            <td>{{ prix.valeur }}</td>
+            <td>{{ prix.date_de_debut }}</td>
+            <td>{{ prix.date_fin }}</td>
+            <td>{{ prix.produit.name }}</td> <!-- Affiche le nom du produit -->
+            <td>{{ prix.point_de_vente.code }}</td> <!-- Affiche le code du point de vente -->
+            <td>
+                <!-- Bouton pour voir les détails du prix -->
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ prix.id }}">
+                    <i class="fas fa-eye"></i> Voir
+                </button>
+
+                <!-- Bouton pour modifier le prix -->
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ prix.id }}">
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+
+                <!-- Formulaire pour supprimer le prix -->
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_price_id" value="{{ prix.id }}">
+                    <button type="submit" class="btn btn-danger" name="supprimer">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Aucun prix de produit trouvé.</td> <!-- Message si aucun prix n'est disponible -->
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal pour ajouter un nouveau prix -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un Prix</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <!-- Champ pour la valeur du prix -->
+                    <div class="mb-3">
+                        <label for="valeur" class="form-label">Valeur</label>
+                        <input type="number" name="valeur" class="form-control" placeholder="Entrez la valeur" required>
+                        {% if form.valeur.errors %}
+                        <div class="text-danger">{{ form.valeur.errors }}</div> <!-- Affiche les erreurs de validation -->
+                        {% endif %}
+                    </div>
+
+                    <!-- Champ pour la date de début -->
+                    <div class="mb-3">
+                        <label for="date_de_debut" class="form-label">Date de Début</label>
+                        <input type="date" name="date_de_debut" class="form-control" required>
+                        {% if form.date_de_debut.errors %}
+                        <div class="text-danger">{{ form.date_de_debut.errors }}</div> <!-- Affiche les erreurs de validation -->
+                        {% endif %}
+                    </div>
+
+                    <!-- Champ pour la date de fin -->
+                    <div class="mb-3">
+                        <label for="date_fin" class="form-label">Date de Fin</label>
+                        <input type="date" name="date_fin" class="form-control" required>
+                        {% if form.date_fin.errors %}
+                        <div class="text-danger">{{ form.date_fin.errors }}</div> <!-- Affiche les erreurs de validation -->
+                        {% endif %}
+                    </div>
+
+                    <!-- Champ pour sélectionner le produit -->
+                    <div class="mb-3">
+                        <label for="produit" class="form-label">Produit</label>
+                        {{ form.produit }} <!-- Utilise le champ produit du formulaire Django -->
+                        {% if form.produit.errors %}
+                        <div class="text-danger">{{ form.produit.errors }}</div> <!-- Affiche les erreurs de validation -->
+                        {% endif %}
+                    </div>
+
+                    <!-- Champ pour sélectionner le point de vente -->
+                    <div class="mb-3">
+                        <label for="point_de_vente" class="form-label">Point de Vente</label>
+                        {{ form.point_de_vente }} <!-- Utilise le champ point_de_vente du formulaire Django -->
+                        {% if form.point_de_vente.errors %}
+                        <div class="text-danger">{{ form.point_de_vente.errors }}</div> <!-- Affiche les erreurs de validation -->
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

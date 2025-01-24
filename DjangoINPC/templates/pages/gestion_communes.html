@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Gestion des Communes</h1>
+
+<!-- Bouton pour exporter les données des Communes -->
+<a href="{% url 'export_data' %}?table=Commune" class="btn btn-success mb-3">
+    <i class="fas fa-file-export"></i> Exporter les Communes
+</a>
+
+<a href="{% url 'import_data' %}" class="btn btn-success mb-3">
+    <i class="fas fa-file-import"></i> Importer des données
+</a>
+<!-- Bouton pour ajouter une commune -->
+<div class="mb-3">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="fas fa-plus"></i> Ajouter une Commune
+    </button>
+</div>
+
+<!-- Tableau des communes -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Moughataa</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for commune in communes %}
+        <tr>
+            <td>{{ commune.id }}</td>
+            <td>{{ commune.code }}</td>
+            <td>{{ commune.name }}</td>
+            <td>{{ commune.moughataa.label }}</td>
+            <td>
+                <!-- Bouton Voir -->
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ commune.id }}">
+                    <i class="fas fa-eye"></i> Voir
+                </button>
+
+                <!-- Bouton Modifier -->
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ commune.id }}">
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+
+                <!-- Bouton Supprimer -->
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="commune_id" value="{{ commune.id }}">
+                    <button type="submit" name="supprimer" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </td>
+        </tr>
+
+        <!-- Modal Voir -->
+        <div class="modal fade" id="viewModal{{ commune.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Détails de la Commune</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>ID :</strong> {{ commune.id }}</p>
+                        <p><strong>Code :</strong> {{ commune.code }}</p>
+                        <p><strong>Nom :</strong> {{ commune.name }}</p>
+                        <p><strong>Moughataa :</strong> {{ commune.moughataa.label }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Modifier -->
+        <div class="modal fade" id="editModal{{ commune.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modifier la Commune</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="commune_id" value="{{ commune.id }}">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="code" class="form-label">Code</label>
+                                <input type="text" name="code" class="form-control" value="{{ commune.code }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nom</label>
+                                <input type="text" name="name" class="form-control" value="{{ commune.name }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="moughataa" class="form-label">Moughataa</label>
+                                <select name="moughataa" class="form-control">
+                                    {% for moughataa in moughataas %}
+                                    <option value="{{ moughataa.id }}" {% if moughataa.id == commune.moughataa.id %}selected{% endif %}>{{ moughataa.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" name="modifier" class="btn btn-warning">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal pour ajouter une nouvelle commune -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter une Commune</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Code</label>
+                        <input type="text" name="code" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nom</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="moughataa" class="form-label">Moughataa</label>
+                        <select name="moughataa" class="form-control" required>
+                            {% for moughataa in moughataas %}
+                            <option value="{{ moughataa.id }}">{{ moughataa.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" name="creer" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

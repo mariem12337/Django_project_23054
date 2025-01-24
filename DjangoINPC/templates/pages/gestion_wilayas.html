@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Gestion des Wilayas</h1>
+
+<!-- Bouton pour exporter les données des Wilayas -->
+<a href="{% url 'export_data' %}?table=Wilaya" class="btn btn-success mb-3">
+    <i class="fas fa-file-export"></i> Exporter les Wilayas
+</a>
+
+<a href="{% url 'import_data' %}" class="btn btn-success mb-3">
+    <i class="fas fa-file-import"></i> Importer des données
+</a>
+<!-- Bouton pour ouvrir le modal d'ajout d'une wilaya -->
+<div class="mb-3">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="fas fa-plus"></i> Ajouter une Wilaya
+    </button>
+</div>
+
+<!-- Tableau pour afficher la liste des wilayas -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for wilaya in wilayas %}
+        <tr>
+            <td>{{ wilaya.id }}</td>
+            <td>{{ wilaya.code }}</td>
+            <td>{{ wilaya.name }}</td>
+            <td>
+                <!-- Bouton pour voir les détails de la wilaya -->
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ wilaya.id }}">
+                    <i class="fas fa-eye"></i> Voir
+                </button>
+
+                <!-- Bouton pour modifier la wilaya -->
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ wilaya.id }}">
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+
+                <!-- Formulaire pour supprimer la wilaya -->
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="wilaya_id" value="{{ wilaya.id }}">
+                    <button type="submit" name="supprimer" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </td>
+        </tr>
+
+        <!-- Modal pour afficher les détails de la wilaya -->
+        <div class="modal fade" id="viewModal{{ wilaya.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Détails de la Wilaya</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>ID :</strong> {{ wilaya.id }}</p>
+                        <p><strong>Code :</strong> {{ wilaya.code }}</p>
+                        <p><strong>Nom :</strong> {{ wilaya.name }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour modifier une wilaya -->
+        <div class="modal fade" id="editModal{{ wilaya.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modifier la Wilaya</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <input type="hidden" name="wilaya_id" value="{{ wilaya.id }}">
+                            <div class="mb-3">
+                                <label for="code" class="form-label">Code</label>
+                                <input type="text" name="code" class="form-control" value="{{ wilaya.code }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nom</label>
+                                <input type="text" name="name" class="form-control" value="{{ wilaya.name }}">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" name="modifier" class="btn btn-warning">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal pour ajouter une nouvelle wilaya -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter une Wilaya</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Code</label>
+                        <input type="text" name="code" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nom</label>
+                        <input type="text" name="name" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" name="creer" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

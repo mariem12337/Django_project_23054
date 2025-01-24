@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Gestion des Types de Produits</h1>
+
+<!-- Bouton pour exporter les données des Types de Produits -->
+<a href="{% url 'export_data' %}?table=ProductType" class="btn btn-success mb-3">
+    <i class="fas fa-file-export"></i> Exporter les Types de Produits
+</a>
+
+<a href="{% url 'import_data' %}" class="btn btn-success mb-3">
+    <i class="fas fa-file-import"></i> Importer des données
+</a>
+
+<!-- Bouton pour ouvrir le modal d'ajout d'un type de produit -->
+<div class="mb-3">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="fas fa-plus"></i> Ajouter un Type de Produit
+    </button>
+</div>
+
+<!-- Tableau pour afficher la liste des types de produits -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Label</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product_type in product_types %}
+        <tr>
+            <td>{{ product_type.id }}</td>
+            <td>{{ product_type.code }}</td>
+            <td>{{ product_type.label }}</td>
+            <td>{{ product_type.description }}</td>
+            <td>
+                <!-- Bouton pour voir les détails du type de produit -->
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ product_type.id }}">
+                    <i class="fas fa-eye"></i> Voir
+                </button>
+
+                <!-- Bouton pour modifier le type de produit -->
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ product_type.id }}">
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+
+                <!-- Formulaire pour supprimer le type de produit -->
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_id" value="{{ product_type.id }}">
+                    <button type="submit" name="supprimer" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </td>
+        </tr>
+
+        <!-- Modal pour afficher les détails du type de produit -->
+        <div class="modal fade" id="viewModal{{ product_type.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Détails du Type de Produit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>ID :</strong> {{ product_type.id }}</p>
+                        <p><strong>Code :</strong> {{ product_type.code }}</p>
+                        <p><strong>Label :</strong> {{ product_type.label }}</p>
+                        <p><strong>Description :</strong> {{ product_type.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour modifier un type de produit -->
+        <div class="modal fade" id="editModal{{ product_type.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modifier le Type de Produit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <input type="hidden" name="edit_id" value="{{ product_type.id }}">
+                            <div class="mb-3">
+                                <label for="code" class="form-label">Code</label>
+                                <input type="text" name="code" class="form-control" value="{{ product_type.code }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="label" class="form-label">Label</label>
+                                <input type="text" name="label" class="form-control" value="{{ product_type.label }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea name="description" class="form-control">{{ product_type.description }}</textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" name="modifier" class="btn btn-warning">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal pour ajouter un nouveau type de produit -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un Type de Produit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Code</label>
+                        <input type="text" name="code" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="label" class="form-label">Label</label>
+                        <input type="text" name="label" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea name="description" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" name="creer" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
