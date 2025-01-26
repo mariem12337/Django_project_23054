@@ -17,10 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from pages import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('pages/', include('pages.urls')),  # This makes the root URL map to 'pages.urls'
-]
-
+    path('', views.connexion, name='connexion'),  # Page de connexion comme page d'accueil
+    path('', include('pages.urls')),  # Inclure toutes les URLs de l'application pages
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

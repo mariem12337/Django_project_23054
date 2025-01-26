@@ -447,100 +447,114 @@ from .resources import (
 from tablib import Dataset
 
 def import_data(request):
-    if request.method == 'POST' and request.FILES['file']:
+    if request.method == 'POST' and request.FILES.get('file'):
         file = request.FILES['file']
+        
+        # Vérifier l'extension du fichier
+        file_format = file.name.split('.')[-1].lower()
+        if file_format not in ['csv', 'xlsx', 'xls']:
+            messages.error(request, 'Format de fichier non supporté. Utilisez CSV ou Excel.')
+            return redirect('import_data')
+
         dataset = Dataset()
-        dataset.load(file.read(), format=file.name.split('.')[-1])  # Détecter le format (CSV, XLSX, etc.)
-
-        # Récupérer le modèle sélectionné
-        model_name = request.POST.get('model')
-
-        # Associer le modèle à la ressource correspondante
-        resource = None
-        if model_name == 'Wilaya':
-            resource = WilayaResource()
-        elif model_name == 'Moughataa':
-            resource = MoughataaResource()
-        elif model_name == 'Commune':
-            resource = CommuneResource()
-        elif model_name == 'Product':
-            resource = ProductResource()
-        elif model_name == 'PointOfSale':
-            resource = PointOfSaleResource()
-        elif model_name == 'ProductPrice':
-            resource = ProductPriceResource()
-        elif model_name == 'Cart':
-            resource = CartResource()
-        elif model_name == 'CartProducts':
-            resource = CartProductsResource()
-        elif model_name == 'Famille':
-            resource = FamilleResource()
-        elif model_name == 'Prix':
-            resource = PrixResource()
-
-        if resource:
-            # Tester l'importation (dry_run=True)
-            result = resource.import_data(dataset, dry_run=True)
-            if not result.has_errors():
-                # Importer les données pour de vrai (dry_run=False)
-                resource.import_data(dataset, dry_run=False)
-                messages.success(request, "Données importées avec succès.")
+        try:
+            # Charger les données selon le format
+            if file_format == 'csv':
+                imported_data = dataset.load(file.read().decode('utf-8'), format='csv')
             else:
-                messages.error(request, "Erreur lors de l'importation des données. Vérifiez le fichier.")
-        else:
-            messages.error(request, "Modèle non valide.")
+                imported_data = dataset.load(file.read(), format=file_format)
+
+            # Récupérer le modèle sélectionné
+            model_name = request.POST.get('model')
+
+            # Dictionnaire de mapping des ressources
+            resource_mapping = {
+                'Wilaya': WilayaResource(),
+                'Moughataa': MoughataaResource(),
+                'Commune': CommuneResource(),
+                'Product': ProductResource(),
+                'PointOfSale': PointOfSaleResource(),
+                'ProductPrice': ProductPriceResource(),
+                'Cart': CartResource(),
+                'CartProducts': CartProductsResource(),
+                'Famille': FamilleResource(),
+                'Prix': PrixResource()
+            }
+
+            resource = resource_mapping.get(model_name)
+
+            if resource:
+                try:
+                    # Tester l'importation
+                    result = resource.import_data(dataset, dry_run=True)
+                    if not result.has_errors():
+                        # Importer les données
+                        resource.import_data(dataset, dry_run=False)
+                        messages.success(request, "Données importées avec succès.")
+                    else:
+                        messages.error(request, f"Erreurs dans les données : {result.row_errors()}")
+                except Exception as e:
+                    messages.error(request, f"Erreur lors de l'importation : {str(e)}")
+            else:
+                messages.error(request, f"Modèle '{model_name}' non valide.")
+
+        except Exception as e:
+            messages.error(request, f"Erreur lors du traitement du fichier : {str(e)}")
 
         return redirect('import_data')
 
     return render(request, 'pages/import_data.html')
 
-
-## vue exporation : 
+# Vue d'exportation
+import csv
 from django.http import HttpResponse
-from .resources import (
-    WilayaResource, MoughataaResource, CommuneResource, ProductResource,
-    PointOfSaleResource, ProductPriceResource, CartResource, CartProductsResource,
-    FamilleResource, PrixResource
-)
+from .models import Wilaya, Moughataa, Commune, Product, PointOfSale, ProductPrice, Cart, CartProducts, Famille, Prix
 
 def export_data(request):
-    if request.method == 'GET':
-        # Récupérer le modèle sélectionné
-        model_name = request.GET.get('table')
+    table = request.GET.get('table', None)
 
-        # Associer le modèle à la ressource correspondante
-        resource = None
-        if model_name == 'Wilaya':
-            resource = WilayaResource()
-        elif model_name == 'Moughataa':
-            resource = MoughataaResource()
-        elif model_name == 'Commune':
-            resource = CommuneResource()
-        elif model_name == 'Product':
-            resource = ProductResource()
-        elif model_name == 'PointOfSale':
-            resource = PointOfSaleResource()
-        elif model_name == 'ProductPrice':
-            resource = ProductPriceResource()
-        elif model_name == 'Cart':
-            resource = CartResource()
-        elif model_name == 'CartProducts':
-            resource = CartProductsResource()
-        elif model_name == 'Famille':
-            resource = FamilleResource()
-        elif model_name == 'Prix':
-            resource = PrixResource()
+    valid_tables = {
+        "Wilaya": Wilaya,
+        "Moughataa": Moughataa,
+        "Commune": Commune,
+        "Product": Product,
+        "PointOfSale": PointOfSale,
+        "ProductPrice": ProductPrice,
+        "Cart": Cart,
+        "CartProducts": CartProducts,
+        "Famille": Famille,
+        "Prix": Prix,
+    }
 
-        if resource:
-            # Exporter les données
-            dataset = resource.export()
-            response = HttpResponse(dataset.csv, content_type='text/csv')
-            response['Content-Disposition'] = f'attachment; filename="{model_name}_export.csv"'
-            return response
-        else:
-            return HttpResponse("Table non valide", status=400)
+    if table not in valid_tables:
+        return HttpResponse("Table non valide", status=400)
 
-    return HttpResponse("Méthode non autorisée", status=405)
+    model_class = valid_tables[table]
+
+    # Récupération de tous les objets du modèle
+    queryset = model_class.objects.all()
+
+    # Créer la réponse CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{table}.csv"'
+
+    # Exemple de création CSV : on récupère les champs dynamiquement
+    writer = csv.writer(response)
+    fields = [field.name for field in model_class._meta.get_fields()]
+
+    # Écrire l’entête
+    writer.writerow(fields)
+
+    # Écrire les lignes de données
+    for obj in queryset:
+        row = []
+        for field in fields:
+            value = getattr(obj, field, "")
+            row.append(value)
+        writer.writerow(row)
+
+    return response
+
 
 ## inpc: 
 

@@ -2,11 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Page d'accueil
-    path('', views.accueil, name='accueil'),
-
-    # Connexion
+    # Authentification
     path('connexion/', views.connexion, name='connexion'),
+    path('accueil/', views.accueil, name='accueil'),
+
 
     # Gestion des Wilayas
     path('wilayas/', views.gestion_wilayas, name='gestion_wilayas'),
@@ -48,7 +47,6 @@ urlpatterns = [
     
     # Page de calcul de l'INPC
     path('calculate_inpc/', views.calculate_inpc, name='calculate_inpc'),
-
-    path('calculate_inpc/', views.calculate_inpc, name='calculate_inpc'),
+    
     path('', views.home, name='home'),
 ]
